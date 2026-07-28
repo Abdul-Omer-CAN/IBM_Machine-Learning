@@ -1,0 +1,28 @@
+# Module 2 Summary Retrieving Data #
+
+# SQL Lite Connection #
+
+import sqlite3 as sq1
+import pandas.io.sql as pds
+
+con = sq3.Connection('path/to/database.db')  # connect to database
+
+observations = pds.read_sql(query, con) # run query &  return DataFrame
+
+# SQL Query words #
+
+SELECT * FROM table_name          # get all columns and rows
+SELECT col1, col2 FROM table      # get specific columns
+GROUP by col                      # group results by column
+ORDER by col DESC                 # sort in descending order
+AVG(col) AS avg_col               # avg of the column
+COUNT(*) AS count                 # Count rows
+LIMIT 3                           # return only 3 rows
+
+# sqlite_master #
+
+all_tables = pd.read_sql('SELECT * FROM sqlite_master', con) # shows all tables in database.
+
+# chunksize #
+
+pds.read_sql(query, con, chunksize=5) # load 5 rows at a time instead of all at once. Useful for large Datasets & use 'if index < N' to control how many chunks to display.

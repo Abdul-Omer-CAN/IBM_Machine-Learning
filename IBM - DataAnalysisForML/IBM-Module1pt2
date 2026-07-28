@@ -1,0 +1,57 @@
+#### SQL ####
+
+## SQL is a language used to talk to databases. Think of a database like a giant excel spreadsheet w/ multiple tables.
+# Instead of opening Excel and scrolling. You write a SQL command to get exactly what you want.
+
+# SQL Data imports 
+import sqlite3 as sq3
+import pandas as pd
+
+# Initialize path to SQLite database
+path = 'data/classic_rock.db'
+
+# Create connection SQL database
+con = sq3.Connection(path)
+
+# Write Query
+query = ''' SELECT * FROM rock_songs; 
+'''
+
+# Means Give me ALL columns and ALL rows from the rock_songs table.
+
+# Execute Query
+data = pd.read_sql(query, con)  # -> Returns result as a dataframe.
+
+
+
+
+#### NoSQL Databases ####
+
+# Databases that vary more in structure. Most NoSQL databases store data in JSON format. May perform quickly or reduce technical overhead.
+# Example: 
+# 1-Document databases: mangoDB(stores JSON like docs. Most popular NoSQL is mongoDB. They are basically python dict). 
+# 2-KeyValue stores: Riak(key:value pairs).
+# 3-Graph databases: Neo4j(stores relationship between data e.g social networks, recommendations) 
+# 4-WideColumn stores: Cassandra(Like SQL but flexible columns used by Netflix, Uber.)
+
+# # SQL Data imports
+# from pymongo import MongoClient
+
+# # Create Mango connection
+# con = MongoClient()
+
+# # Choose database (con.list_database_names() will display avaiable databases)
+# db = con.database_name
+
+# # Create a cursor object using query
+# cursor = db.collection_name.find(query)
+
+# # Expand cursor and construct Dataframe
+# df = pd.DataFrame(list(cursor)) # convert results to panda DataFrame.
+
+
+# Differences between SQL and NoSQL is:
+# 1-SQL databases has data stored in neat tables with fixed columns. e.g excel.
+# 2-NoSQL databases are more flexible - data can be messy, nested. Perfect for things like real-time data, social media posts & user profiles.
+
+print(data.head())

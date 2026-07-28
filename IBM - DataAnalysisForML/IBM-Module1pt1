@@ -1,0 +1,40 @@
+## Pandas Refresher ##
+
+# CSV #
+
+CSV Files consists of rows of data seperated by a ','
+Using pandas we can read them.
+
+import pandas as pd
+filepath = 'data/iris_data.csv'
+
+# Import the data 
+data = pdf.read_csv(filepath)
+
+# Print a few rows
+print(data.iloc[:5])
+
+# Different seperators #
+data = pd.read_csv(filepath, sep='\t') # tab seperated(large space between columns and well aligned is tab)
+data = pd.read_csv(filepath, delim_whitespace=True) # space seperated.
+data = pd.read_csv(filepath, header=None) # Dont use first row for column names. If there is a header then it will treat the header as data.
+data = pd.read_csv(filepath, names=['Name1', 'Name2']) # Assign column names 
+data = pd.read_csv(filepath, na_values=['NA', 99]) # The values in the brackets are [] classified as NAN.
+
+
+# JSON #
+
+# Read JSON File as dataframe
+
+data = pd.read_json(filepath)
+
+# Read nested JSON (from API Responses)
+
+import json
+with open(filepath) as f:
+    raw = json.load(f)
+df = pd.json_normalize(raw) # Flattens nested JSON into a DataFrame.
+
+# Write to DataFrame
+
+data.to_json('outputfile.json)
