@@ -101,3 +101,102 @@ sns.pairplot(smaller_df, plot_kws=dict(alpha=.1, edgecolor='none')) # creates a 
 plt.show() # '.1' 10% opacity per dot. Making them transparent shows the density better. edgecolor removes black border around each dot, cleaner look.
 # Does SalePrice go up as Overall Qual increases?
 # Does SalePrice go up as Year Built increases.
+
+## Polynomial Features ##
+
+# Set up X(features) & Y(Target)
+y = smaller_df['SalePrice'] # Seperate the target what we want to predict
+x = smaller_df.drop['SalePrice', axis=1] # Drop SalePrice from features. drop a column(axis=1) 0 would be rows. X now has only 10 feature columns.
+
+# Copy X for polynomial features
+X2 = X.copy() # Make a copy before adding new features.
+
+# Add squared terms
+X2['OQ2'] = X2['Overall Qual'] ** 2 # Create new feature = Overall Quality squared
+X2['GLA2'] = X2['Gr Liv Area'] ** 2 # Create new features = Living Area squared
+# The reason why we square it is because we want to amplify the difference between low and high quality. Helps the model capture non linear relationships.
+
+## Interaction Terms ##
+
+X3 = X2.copy() # copies X2 which has the squared features
+
+# Multiplicative interaction - quality  x year built
+X3['OQ_x_YB'] = X3['Overall Qual'] * X3['Year Built'] # Multiply quality x Year Built | Captures "A high quality new house is worth  more than a high quality OLD House"
+
+# Division interaction - quality / lot area
+X3['OQ_/_LA']= X3['Overall Qual'] / X3['Lot Area'] # Divide Quality / Lot Area | Captures "quality per sqaure foot"
+
+## Category Features ##
+
+# Check house style categories and counts. Counts how many houses of each style exist.
+data['House Style'].value_counts()
+
+# Preview one-hot encoding on House-Style. Each house becomes its own 0/1 column.
+pd.get_dummies(df['House Style'], drop_first=True).head()
+
+# Check neighborhood counts. 
+nbh_counts = df.Neighborhood.value_counts()
+print(nbh_counts)
+
+# Find neighborhood with 8 or fewer houses (rare categories). Too few examples = unreliable category.
+other_nbhs = list(nbh_counts[nbh_counts <= 8].index)
+print(other_nbhs)
+
+# Copy X3 and add Neighborhood feature
+X4 = X3.copy()
+
+# Replace rare neighborhoods with 'Other'. Replace all rare neighborhoods with Other. Groups them together so the model has enough data to learn.
+X4['Neighborhood'] = df['Neighborhood'].replace(other_nbhs, 'Other')
+
+## One-Hot Coding & Drop First Rule $$
+
+# ML models cant understand text. one hot coding converts categories to 0s and 1s.
+# Each row gets a 1 for its category and 0 for everything else.
+# drop_first=True removes one column because its always predictable from the others. 
+# Example: if 1Story=0 and 1.5=0 -> It has to be a 2 Story. The 2 story column is redunant.
+# This is called a dummy variable trap = keeping all columns causes multicollinearity.
+# Rule: always n-1 columns where n=number of categories.
+
+## Deviation Features ##
+
+def add_deviation_feature(X, feature, category): # Define a reusable fxn. X is the DataFrame. feature is the column we want to measure (e.g Year Built). category is the group we compare with within(e.g House Style   )
+
+    # Group by category
+    category_gb = X.groupby(category)[feature] # Group data by category(e.g house style) & Focus on one feature(e.g Year Built)
+
+    # Calculate mean and std for each category
+    category_mean = category_gb.transform(lambda x: x.mean()) # Calculate mean Year built for each House Style group.
+    category_std = category_gb.transform(lambda x: x.std()) # Calculates standard deviation per group. How spread out are the Year Built values within each style.
+
+    # Calculate how far each value is from its category mean
+    deviation_feature = (X[feature] - category_mean) / category_std # How many standard deviations is this house from its group's mean?
+    X[feature + '_Dev_' + category] = deviation_feature # Creates a new column name with a descriptive name e.g like Year Built_Dev_House Style. Stores the Deviation values there.
+
+    # Create X5and add deviation features
+    X5 = X4.copy()
+    X5['House Style'] = df['House Style'] # Add house style column back. we need it for grouping.
+    add_deviation_feature(X5, 'Year Built', 'House Style') # Call our function. How old is this house compared to other houses of the same style.
+    add_deviation_feature(X5, 'Overall Qual', 'Neighborhood') # How good is this house compared to other houses in the same neighborhood.
+
+    ## Sklearn Polynomial Features ##
+
+    from sklearn.preprocessing import PolynomialFeatures
+
+    # Create polynomial features object - degree 2. degree 2 includes original features, squared features AND cross terms
+    pf = PolynomialFeatures(degree=2)
+
+    # Select features to apply polynomial to
+    features= ['Lot Area', 'Overal Qual']
+
+    # Fit the polynomial features. Learn the feature names and structure.
+    pf.fit(df[features])
+
+    # See what features were created
+    print(pf.get_feature_names_out(input_features=features)) # Show all features it will create: 1, Lot Area, Overall Qual, Lot Area², Lot Area×Overall Qual, Overall Qual²
+
+    # Transform and create DataFrame
+    feat_array= pf.transform(df[features]) # Actually creates all those new features.
+    pd.DataFrame(feat_array, columns=pf.get_feature_names_out(input_features=features) # Converts numpy array into a proper DataFrame. feat_array= the numbers. columns=... gives us the  column names instead of numeric labels.
+
+
+
